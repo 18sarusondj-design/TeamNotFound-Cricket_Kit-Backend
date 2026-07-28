@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.scheduling.annotation.Async;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ public class EmailNotificationService implements NotificationService {
     @Value("${brevo.sender.email:kumarswamyhiremath22@gmail.com}")
     private String senderEmail;
 
+    @Async
     @Override
     public void sendOtp(String identifier, String otp) {
         if (identifier.contains("@")) {
