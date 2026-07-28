@@ -21,22 +21,32 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (categoryRepository.count() == 0) {
-            Category bats = new Category("Bats");
-            Category balls = new Category("Balls");
-            Category gloves = new Category("Gloves");
-            Category pads = new Category("Pads");
+        if (productRepository.count() == 0) {
+            Category batsAndBalls = getOrCreateCategory("Balls and Bats");
+            Category protectiveGear = getOrCreateCategory("Gloves,Gaurd and pads");
+            Category boots = getOrCreateCategory("Boots");
+            Category helmets = getOrCreateCategory("Helmets");
+            Category jersey = getOrCreateCategory("Jersey");
 
-            categoryRepository.save(bats);
-            categoryRepository.save(balls);
-            categoryRepository.save(gloves);
-            categoryRepository.save(pads);
+            createProduct("Premium English Willow Bat", "Grade A English willow bat for professional play.", new BigDecimal("8999.00"), 20, batsAndBalls);
+            createProduct("Red Leather Cricket Ball", "Professional 4-piece leather ball.", new BigDecimal("599.00"), 100, batsAndBalls);
+            createProduct("Pro Batting Gloves", "High density foam gloves.", new BigDecimal("1299.00"), 75, protectiveGear);
+            createProduct("Test Match Leg Guards", "Lightweight pads with extreme protection.", new BigDecimal("2499.00"), 40, protectiveGear);
+            createProduct("Spiked Cricket Boots", "Maximum grip for fast bowlers.", new BigDecimal("3499.00"), 30, boots);
+            createProduct("Titanium Visor Helmet", "Maximum head protection.", new BigDecimal("4999.00"), 15, helmets);
+            createProduct("Team India ODI Jersey", "Official fan jersey, breathable material.", new BigDecimal("1999.00"), 200, jersey);
+        }
+    }
 
-            createProduct("Kashmir Willow Bat", "Premium grade Kashmir willow cricket bat perfect for all formats.", new BigDecimal("2999.00"), 50, bats);
-            createProduct("English Willow Bat", "Grade A English willow bat used by professionals.", new BigDecimal("8999.00"), 20, bats);
-            createProduct("Leather Cricket Ball", "Red 4-piece leather cricket ball for test matches.", new BigDecimal("599.00"), 100, balls);
-            createProduct("Batting Gloves", "High density foam batting gloves with sweat absorption.", new BigDecimal("1299.00"), 75, gloves);
-            createProduct("Leg Guards", "Lightweight professional leg guards with extreme protection.", new BigDecimal("2499.00"), 40, pads);
+    private Category getOrCreateCategory(String name) {
+        // Find existing or create new to avoid duplicate key errors if the user manually inserted them
+        try {
+            return categoryRepository.findAll().stream()
+                .filter(c -> c.getCategoryName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElseGet(() -> categoryRepository.save(new Category(name)));
+        } catch (Exception e) {
+            return categoryRepository.save(new Category(name));
         }
     }
 
