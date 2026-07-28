@@ -87,15 +87,24 @@ public class AuthService {
 
     @Transactional
     public JwtResponse login(LoginRequest request) {
+        // Check if user actually exists before attempting to authenticate
+        Optional<User> userOpt = userRepository.findByEmail(request.getIdentifier());
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByMobileNumber(request.getIdentifier());
+        }
+        
+        if (userOpt.isEmpty()) {
+            throw new BadRequestException("User does not exist. Please go sign up!");
+        }
+        
         // Authenticate with Spring Security
-        // Our UserDetailsServiceImpl can load by email or mobile
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getIdentifier(), request.getPassword()));
         } catch (BadCredentialsException e) {
-            // Generic error message for invalid credentials
-            throw new InvalidCredentialsException("Invalid credentials provided");
+            // Because we verified the user exists above, if this fails it means the password is wrong
+            throw new InvalidCredentialsException("Incorrect password. Please try again.");
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
