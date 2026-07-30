@@ -63,6 +63,10 @@ public class AuthService {
 
         if (pendingUserRepository.existsByEmail(request.getEmail())) {
             pendingUserRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+                LocalDateTime canResendAt = user.getExpiryTime().minusSeconds((otpExpirationMs / 1000) - 60);
+                if (LocalDateTime.now().isBefore(canResendAt)) {
+                    throw new BadRequestException("Please wait 1 minute before requesting a new OTP.");
+                }
                 pendingUserRepository.delete(user);
                 pendingUserRepository.flush();
             });
@@ -140,9 +144,7 @@ public class AuthService {
         
         Optional<UserSession> sessionOpt = userSessionRepository.findByJwtToken(token);
         if (sessionOpt.isPresent()) {
-            UserSession session = sessionOpt.get();
-            session.setActive(false);
-            userSessionRepository.save(session);
+            userSessionRepository.delete(sessionOpt.get());
         }
         
         SecurityContextHolder.clearContext();
@@ -161,7 +163,15 @@ public class AuthService {
             User user = userOpt.get();
             
             // Invalidate any existing OTPs for this identifier
-            otpRepository.findByIdentifier(request.getIdentifier()).ifPresent(otpRepository::delete);
+            Optional<PasswordResetOtp> existingOtpOpt = otpRepository.findByIdentifier(request.getIdentifier());
+            if (existingOtpOpt.isPresent()) {
+                PasswordResetOtp existingOtp = existingOtpOpt.get();
+                LocalDateTime canResendAt = existingOtp.getExpiryTime().minusSeconds((otpExpirationMs / 1000) - 60);
+                if (LocalDateTime.now().isBefore(canResendAt)) {
+                    throw new BadRequestException("Please wait 1 minute before requesting a new password reset OTP.");
+                }
+                otpRepository.delete(existingOtp);
+            }
 
             String otpCode = generateOtp();
             
@@ -233,6 +243,11 @@ public class AuthService {
     public MessageResponse resendRegistrationOtp(ResendOtpRequest request) {
         PendingUser pendingUser = pendingUserRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadRequestException("Registration request not found. Please register first."));
+                
+        LocalDateTime canResendAt = pendingUser.getExpiryTime().minusSeconds((otpExpirationMs / 1000) - 60);
+        if (LocalDateTime.now().isBefore(canResendAt)) {
+            throw new BadRequestException("Please wait 1 minute before requesting a new OTP.");
+        }
                 
         String otpCode = generateOtp();
         pendingUser.setOtpHash(passwordEncoder.encode(otpCode));

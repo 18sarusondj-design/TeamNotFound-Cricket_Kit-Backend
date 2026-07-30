@@ -29,6 +29,9 @@ public class EmailNotificationService implements NotificationService {
     @Override
     public void sendOtp(String identifier, String otp) {
         if (identifier.contains("@")) {
+            logger.info("=========================================================");
+            logger.info("LOCAL DEV MODE: Email OTP for {} is: {}", identifier, otp);
+            logger.info("=========================================================");
             try {
                 RestTemplate restTemplate = new RestTemplate();
                 HttpHeaders headers = new HttpHeaders();
