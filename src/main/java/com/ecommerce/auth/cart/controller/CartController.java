@@ -49,4 +49,33 @@ public class CartController {
         cartItemRepository.save(item);
         return ResponseEntity.ok(new com.ecommerce.auth.dto.MessageResponse("Added to cart successfully"));
     }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> updateQuantity(@RequestBody com.ecommerce.auth.dto.AddToCartRequest request) {
+        CartItem item = cartItemRepository.findByUser_IdAndProduct_ProductId(request.getUserId(), request.getProductId()).orElse(null);
+        if (item == null) {
+            return ResponseEntity.badRequest().body(new com.ecommerce.auth.dto.MessageResponse("Item not found in cart"));
+        }
+        
+        if (request.getQuantity() <= 0) {
+            cartItemRepository.delete(item);
+            return ResponseEntity.ok(new com.ecommerce.auth.dto.MessageResponse("Item removed from cart"));
+        }
+        
+        item.setQuantity(request.getQuantity());
+        cartItemRepository.save(item);
+        return ResponseEntity.ok(new com.ecommerce.auth.dto.MessageResponse("Quantity updated"));
+    }
+
+    @DeleteMapping("/remove/{userId}/{productId}")
+    public ResponseEntity<?> removeFromCart(@PathVariable Long userId, @PathVariable Long productId) {
+        cartItemRepository.deleteByUser_IdAndProduct_ProductId(userId, productId);
+        return ResponseEntity.ok(new com.ecommerce.auth.dto.MessageResponse("Item removed from cart"));
+    }
+
+    @DeleteMapping("/clear/{userId}")
+    public ResponseEntity<?> clearCart(@PathVariable Long userId) {
+        cartItemRepository.deleteByUser_Id(userId);
+        return ResponseEntity.ok(new com.ecommerce.auth.dto.MessageResponse("Cart cleared"));
+    }
 }
