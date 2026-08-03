@@ -114,4 +114,10 @@ public class OrderService {
             return false;
         }
     }
+
+    public List<Order> getUserOrders(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return orderRepository.findByUser_Id(user.getId());
+    }
 }

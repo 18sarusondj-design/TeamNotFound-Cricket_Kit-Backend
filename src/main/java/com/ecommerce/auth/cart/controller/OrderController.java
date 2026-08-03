@@ -11,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.List;
+import com.ecommerce.auth.cart.entity.Order;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -40,6 +42,17 @@ public class OrderController {
             return ResponseEntity.ok(Map.of("status", "success", "message", "Payment verified and order placed."));
         } else {
             return ResponseEntity.badRequest().body(Map.of("status", "failed", "error", "Payment verification failed."));
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getUserOrders() {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            List<Order> orders = orderService.getUserOrders(email);
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
 }

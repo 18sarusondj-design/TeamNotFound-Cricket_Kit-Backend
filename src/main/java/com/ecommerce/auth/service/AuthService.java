@@ -8,6 +8,7 @@ import com.ecommerce.auth.entity.PendingUser;
 import com.ecommerce.auth.exception.BadRequestException;
 import com.ecommerce.auth.exception.InvalidCredentialsException;
 import com.ecommerce.auth.exception.ResourceNotFoundException;
+import com.ecommerce.auth.exception.UnverifiedUserException;
 import com.ecommerce.auth.repository.PasswordResetOtpRepository;
 import com.ecommerce.auth.repository.PendingUserRepository;
 import com.ecommerce.auth.repository.UserRepository;
@@ -89,7 +90,7 @@ public class AuthService {
         return new MessageResponse("User registered temporarily. Please verify your email.");
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = UnverifiedUserException.class)
     public JwtResponse login(LoginRequest request) {
         // Check if user actually exists before attempting to authenticate
         Optional<User> userOpt = userRepository.findByEmail(request.getIdentifier());
@@ -98,6 +99,20 @@ public class AuthService {
         }
         
         if (userOpt.isEmpty()) {
+            Optional<PendingUser> pendingOpt = pendingUserRepository.findByEmail(request.getIdentifier());
+            if (pendingOpt.isPresent()) {
+                PendingUser pendingUser = pendingOpt.get();
+                if (passwordEncoder.matches(request.getPassword(), pendingUser.getPasswordHash())) {
+                    String otpCode = generateOtp();
+                    pendingUser.setOtpHash(passwordEncoder.encode(otpCode));
+                    pendingUser.setExpiryTime(LocalDateTime.now().plusSeconds(otpExpirationMs / 1000));
+                    pendingUserRepository.save(pendingUser);
+                    notificationService.sendOtp(pendingUser.getEmail(), otpCode);
+                    throw new UnverifiedUserException("User not verified. A new OTP has been sent.", pendingUser.getEmail());
+                } else {
+                    throw new InvalidCredentialsException("Incorrect password. Please try again.");
+                }
+            }
             throw new BadRequestException("User does not exist. Please go sign up!");
         }
         

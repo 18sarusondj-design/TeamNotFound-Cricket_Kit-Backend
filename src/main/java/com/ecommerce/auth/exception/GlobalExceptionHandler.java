@@ -23,6 +23,15 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(UnverifiedUserException.class)
+    public ResponseEntity<Map<String, String>> handleUnverifiedUser(UnverifiedUserException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        error.put("email", ex.getEmail());
+        error.put("status", "UNVERIFIED");
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException ex) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
