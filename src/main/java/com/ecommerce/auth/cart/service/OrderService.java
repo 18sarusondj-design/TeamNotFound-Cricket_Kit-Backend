@@ -4,8 +4,11 @@ import com.ecommerce.auth.dto.OrderRequestDto;
 import com.ecommerce.auth.dto.OrderResponseDto;
 import com.ecommerce.auth.dto.PaymentVerificationDto;
 import com.ecommerce.auth.cart.entity.Order;
+import com.ecommerce.auth.cart.entity.OrderItem;
+import com.ecommerce.auth.cart.entity.CartItem;
 import com.ecommerce.auth.entity.User;
 import com.ecommerce.auth.cart.repository.OrderRepository;
+import com.ecommerce.auth.cart.repository.CartItemRepository;
 import com.ecommerce.auth.repository.UserRepository;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -16,6 +19,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
@@ -31,6 +36,9 @@ public class OrderService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CartItemRepository cartItemRepository;
 
     public OrderResponseDto createOrder(OrderRequestDto request, String email) throws RazorpayException {
         User user = userRepository.findByEmail(email)
@@ -53,7 +61,19 @@ public class OrderService {
         order.setUser(user);
         order.setTotalAmount(BigDecimal.valueOf(request.getAmount()));
         order.setStatus(Order.OrderStatus.PENDING);
-        
+
+        List<CartItem> cartItems = cartItemRepository.findByUser_Id(user.getId());
+        List<OrderItem> orderItems = cartItems.stream().map(cartItem -> {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setProduct(cartItem.getProduct());
+            orderItem.setQuantity(cartItem.getQuantity());
+            orderItem.setPricePerUnit(cartItem.getProduct().getPrice());
+            orderItem.setTotalPrice(cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+            return orderItem;
+        }).collect(Collectors.toList());
+
+        order.setItems(orderItems);
         orderRepository.save(order);
 
         return OrderResponseDto.builder()
@@ -80,6 +100,9 @@ public class OrderService {
                 order.setRazorpayPaymentId(verificationDto.getRazorpayPaymentId());
                 order.setRazorpaySignature(verificationDto.getRazorpaySignature());
                 orderRepository.save(order);
+                
+                // Clear the user's cart after successful payment
+                cartItemRepository.deleteByUser_Id(order.getUser().getId());
                 return true;
             } else {
                 order.setStatus(Order.OrderStatus.FAILED);
