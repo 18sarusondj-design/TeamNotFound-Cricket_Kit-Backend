@@ -18,4 +18,9 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long> 
     @Transactional
     @Query("UPDATE UserSession s SET s.active = false WHERE s.user.id = :userId")
     void revokeAllUserSessions(Long userId);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM UserSession s WHERE s.expiryTime < :now")
+    void deleteExpiredSessions(java.time.LocalDateTime now);
 }
