@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Getter
 @AllArgsConstructor
@@ -18,6 +19,7 @@ public class UserDetailsImpl implements UserDetails {
     private String email;
     private String mobileNumber;
     private String password;
+    private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(User user) {
         return new UserDetailsImpl(
@@ -25,13 +27,14 @@ public class UserDetailsImpl implements UserDetails {
                 user.getEmail(), // Treating email as username for spring security purposes
                 user.getEmail(),
                 user.getMobileNumber(),
-                user.getPasswordHash()
+                user.getPasswordHash(),
+                Collections.singletonList(new SimpleGrantedAuthority(user.getRole()))
         );
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // No roles specified in requirements
+        return authorities;
     }
 
     @Override

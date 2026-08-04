@@ -148,7 +148,7 @@ public class AuthService {
                 .build();
         userSessionRepository.save(session);
 
-        return new JwtResponse(jwt, "Bearer", userDetails.getId(), userDetails.getEmail(), user.getFullName());
+        return new JwtResponse(jwt, "Bearer", userDetails.getId(), userDetails.getEmail(), user.getFullName(), user.getRole());
     }
 
     @Transactional

@@ -42,4 +42,8 @@ public class User {
     @Column(nullable = false)
     @Builder.Default
     private boolean isVerified = false;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String role = "ROLE_USER";
 }

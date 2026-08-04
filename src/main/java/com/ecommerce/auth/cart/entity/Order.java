@@ -44,6 +44,9 @@ public class Order {
     @Column(name = "razorpay_signature")
     private String razorpaySignature;
 
+    @Column(name = "delivery_status")
+    private String deliveryStatus = "PENDING";
+
     public enum OrderStatus {
         PENDING, SUCCESS, FAILED
     }
@@ -113,5 +116,13 @@ public class Order {
 
     public void setRazorpaySignature(String razorpaySignature) {
         this.razorpaySignature = razorpaySignature;
+    }
+
+    public String getDeliveryStatus() {
+        return deliveryStatus;
+    }
+
+    public void setDeliveryStatus(String deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
     }
 }

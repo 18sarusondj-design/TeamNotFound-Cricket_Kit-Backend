@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Random;
+import com.ecommerce.auth.entity.User;
+import com.ecommerce.auth.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -22,8 +25,27 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) throws Exception {
+        // Create Admin user if none exists
+        if (!userRepository.existsByEmail("admin@teamnotfound.com")) {
+            User admin = User.builder()
+                .fullName("System Administrator")
+                .email("admin@teamnotfound.com")
+                .mobileNumber("0000000000")
+                .passwordHash(passwordEncoder.encode("admin123"))
+                .isVerified(true)
+                .role("ROLE_ADMIN")
+                .build();
+            userRepository.save(admin);
+        }
+
         // Ensure all categories exist
         Category batsAndBalls = getOrCreateCategory("Balls and Bats");
         Category protectiveGear = getOrCreateCategory("Gloves,Gaurd and pads");
