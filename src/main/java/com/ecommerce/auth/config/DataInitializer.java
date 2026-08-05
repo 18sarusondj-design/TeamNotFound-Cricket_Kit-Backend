@@ -34,12 +34,12 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Create Admin user if none exists
-        if (!userRepository.existsByEmail("admin@teamnotfound.com")) {
+        if (!userRepository.existsByEmail("sarusondj18@gmail.com")) {
             User admin = User.builder()
                 .fullName("System Administrator")
-                .email("admin@teamnotfound.com")
-                .mobileNumber("0000000000")
-                .passwordHash(passwordEncoder.encode("admin123"))
+                .email("sarusondj18@gmail.com")
+                .mobileNumber("0000000001") // Changed to avoid collision with old admin
+                .passwordHash(passwordEncoder.encode("sarusondj@1"))
                 .isVerified(true)
                 .role("ROLE_ADMIN")
                 .build();
