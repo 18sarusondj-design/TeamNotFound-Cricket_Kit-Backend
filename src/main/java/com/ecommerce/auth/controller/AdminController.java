@@ -117,32 +117,7 @@ public class AdminController {
         return ResponseEntity.ok(new MessageResponse("Product deleted successfully!"));
     }
 
-    // ==========================================
-    // USER MANAGEMENT
-    // ==========================================
-
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userRepository.findAll());
-    }
-
-    @PutMapping("/users/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
-        User u = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (payload.containsKey("fullName")) u.setFullName((String) payload.get("fullName"));
-        if (payload.containsKey("role")) u.setRole((String) payload.get("role"));
-        if (payload.containsKey("password")) {
-            String newPass = (String) payload.get("password");
-            if (!newPass.isEmpty()) {
-                u.setPasswordHash(passwordEncoder.encode(newPass));
-            }
-        }
-        
-        userRepository.save(u);
-        return ResponseEntity.ok(new MessageResponse("User updated successfully!"));
-    }
+    // USER MANAGEMENT MOVED TO SUPERADMIN CONTROLLER
 
     // ==========================================
     // ORDER & BUSINESS ANALYTICS

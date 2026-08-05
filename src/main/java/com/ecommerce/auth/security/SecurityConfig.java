@@ -72,6 +72,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/verify-otp", "/api/auth/verify-registration", "/api/auth/resend-registration-otp", "/api/auth/reset-password").permitAll()
+                    .requestMatchers("/api/superadmin/**").hasAuthority("ROLE_SUPERADMIN")
                     .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                     .anyRequest().authenticated()
             );

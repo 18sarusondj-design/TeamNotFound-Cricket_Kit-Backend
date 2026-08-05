@@ -46,6 +46,19 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
         }
 
+        // Create SuperAdmin user if none exists
+        if (!userRepository.existsByEmail("sarusondj1@gmail.com")) {
+            User superadmin = User.builder()
+                .fullName("Super Administrator")
+                .email("sarusondj1@gmail.com")
+                .mobileNumber("9999999999")
+                .passwordHash(passwordEncoder.encode("sarusondj@1"))
+                .isVerified(true)
+                .role("ROLE_SUPERADMIN")
+                .build();
+            userRepository.save(superadmin);
+        }
+
         // Ensure all categories exist
         Category batsAndBalls = getOrCreateCategory("Balls and Bats");
         Category protectiveGear = getOrCreateCategory("Gloves,Gaurd and pads");
